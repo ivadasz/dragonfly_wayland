@@ -1,0 +1,19 @@
+--- Makefile.in.orig	2015-09-28 23:53:59 +0200
++++ Makefile.in
+@@ -777,6 +777,7 @@
+ ECHO_N = @ECHO_N@
+ ECHO_T = @ECHO_T@
+ EGREP = @EGREP@
++EVENT_LIBS = @EVENT_LIBS@
+ EXEEXT = @EXEEXT@
+ EXPAT_CFLAGS = @EXPAT_CFLAGS@
+ EXPAT_LIBS = @EXPAT_LIBS@
+@@ -1035,7 +1036,7 @@
+ 
+ @ENABLE_CPP_TEST_TRUE@@ENABLE_LIBRARIES_TRUE@cpp_compile_test_SOURCES = tests/cpp-compile-test.cpp
+ @ENABLE_LIBRARIES_TRUE@fixed_benchmark_SOURCES = tests/fixed-benchmark.c
+-@ENABLE_LIBRARIES_TRUE@fixed_benchmark_LDADD = libtest-runner.la
++@ENABLE_LIBRARIES_TRUE@fixed_benchmark_LDADD = libtest-runner.la $(EVENT_LIBS)
+ @ENABLE_LIBRARIES_TRUE@os_wrappers_test_SOURCES = tests/os-wrappers-test.c
+ @ENABLE_LIBRARIES_TRUE@os_wrappers_test_LDADD = libtest-runner.la
+ @ENABLE_LIBRARIES_TRUE@exec_fd_leak_checker_SOURCES = tests/exec-fd-leak-checker.c
