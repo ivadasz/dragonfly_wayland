@@ -18,7 +18,7 @@
  
 -		if (len == -1)
 +		if (len == -1) {
-+			warn("%s: sendmsg", __func__);
++//			warn("%s: sendmsg", __func__);
  			return -1;
 +		}
  

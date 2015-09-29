@@ -18,3 +18,18 @@
  		abort();
  	}
  
+@@ -1558,11 +1558,14 @@
+ 	 * returning an error.  When the compositor sends an error it
+ 	 * will close the socket, and if we bail out here we don't get
+ 	 * a chance to process the error. */
++retry:
+ 	ret = wl_connection_flush(display->connection);
+ 	if (ret < 0 && errno != EAGAIN && errno != EPIPE) {
+ 		display_fatal_error(display, errno);
+ 		goto err_unlock;
+ 	}
++	if (ret < 0 && errno == EAGAIN)
++		goto retry;
+ 
+ 	display->reader_count++;
+ 
