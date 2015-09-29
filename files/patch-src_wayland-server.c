@@ -1,4 +1,4 @@
---- src/wayland-server.c
+--- src/wayland-server.c.orig	2015-06-13 00:34:55 +0200
 +++ src/wayland-server.c
 @@ -44,6 +44,13 @@
  #include <sys/stat.h>
@@ -14,7 +14,7 @@
  #include "wayland-private.h"
  #include "wayland-server.h"
  #include "wayland-server-protocol.h"
-@@ -80,7 +87,11 @@ struct wl_client {
+@@ -80,7 +87,11 @@
  	struct wl_list link;
  	struct wl_map objects;
  	struct wl_signal destroy_signal;
@@ -26,61 +26,21 @@
  	int error;
  };
  
-@@ -251,7 +262,9 @@ wl_client_connection_data(int fd, uint32_t mask, void *data)
- 	}
- 
- 	if (mask & WL_EVENT_WRITABLE) {
-+//		wl_log("%s: WL_EVENT_WRITABLE\n", __func__);
- 		len = wl_connection_flush(connection);
-+//		wl_log("%s: len=%d\n", __func__, len);
- 		if (len < 0 && errno != EAGAIN) {
- 			wl_client_destroy(client);
- 			return 1;
-@@ -263,8 +276,13 @@ wl_client_connection_data(int fd, uint32_t mask, void *data)
- 
- 	len = 0;
- 	if (mask & WL_EVENT_READABLE) {
-+//		wl_log("%s: WL_EVENT_READABLE\n", __func__);
- 		len = wl_connection_read(connection);
-+#if 1
- 		if (len == 0 || (len < 0 && errno != EAGAIN)) {
-+#else
-+		if (len < 0 && errno != EAGAIN) {
-+#endif
- 			wl_client_destroy(client);
- 			return 1;
- 		}
-@@ -349,8 +367,12 @@ wl_client_connection_data(int fd, uint32_t mask, void *data)
- 			break;
- 	}
- 
--	if (client->error)
-+	if (client->error) {
-+		fprintf(stderr, "%s: calling wl_client_destroy\n", __func__);
- 		wl_client_destroy(client);
-+	}
-+
-+//	fprintf(stderr, "%s: returning 1\n", __func__);
- 
- 	return 1;
- }
-@@ -414,7 +436,10 @@ WL_EXPORT struct wl_client *
+@@ -414,7 +425,9 @@
  wl_client_create(struct wl_display *display, int fd)
  {
  	struct wl_client *client;
-+#ifdef HAVE_SYS_UCRED_H
-+#else
++#ifndef HAVE_SYS_UCRED_H
  	socklen_t len;
 +#endif
  
  	client = malloc(sizeof *client);
  	if (client == NULL)
-@@ -429,10 +454,13 @@ wl_client_create(struct wl_display *display, int fd)
+@@ -429,10 +442,12 @@
  	if (!client->source)
  		goto err_client;
  
-+#ifdef HAVE_SYS_UCRED_H
-+#else
++#ifndef HAVE_SYS_UCRED_H
  	len = sizeof client->ucred;
  	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED,
  		       &client->ucred, &len) < 0)
@@ -89,7 +49,7 @@
  
  	client->connection = wl_connection_create(fd);
  	if (client->connection == NULL)
-@@ -484,12 +512,21 @@ WL_EXPORT void
+@@ -484,12 +499,21 @@
  wl_client_get_credentials(struct wl_client *client,
  			  pid_t *pid, uid_t *uid, gid_t *gid)
  {
@@ -111,16 +71,7 @@
  }
  
  /** Look up an object in the client name space
-@@ -669,6 +706,8 @@ wl_client_destroy(struct wl_client *client)
- {
- 	uint32_t serial = 0;
- 
-+	wl_log("%s called\n", __func__);
-+
- 	wl_signal_emit(&client->destroy_signal, client);
- 
- 	wl_client_flush(client);
-@@ -911,7 +950,7 @@ wl_global_create(struct wl_display *display,
+@@ -911,7 +935,7 @@
  
  	if (interface->version < version) {
  		wl_log("wl_global_create: implemented version higher "
@@ -129,7 +80,7 @@
  		return NULL;
  	}
  
-@@ -1035,11 +1074,13 @@ socket_data(int fd, uint32_t mask, void *data)
+@@ -1035,7 +1059,7 @@
  	client_fd = wl_os_accept_cloexec(fd, (struct sockaddr *) &name,
  					 &length);
  	if (client_fd < 0)
@@ -138,13 +89,7 @@
  	else
  		if (!wl_client_create(display, client_fd))
  			close(client_fd);
- 
-+	wl_log("%s: accepted connection\n", __func__);
-+
- 	return 1;
- }
- 
-@@ -1140,12 +1181,12 @@ _wl_display_add_socket(struct wl_display *display, struct wl_socket *s)
+@@ -1140,12 +1164,12 @@
  
  	size = offsetof (struct sockaddr_un, sun_path) + strlen(s->addr.sun_path);
  	if (bind(s->fd, (struct sockaddr *) &s->addr, size) < 0) {
