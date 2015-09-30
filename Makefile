@@ -1,6 +1,6 @@
 PORTNAME=	wayland
 PORTVERSION=	1.9.0
-CATEGORIES=	net
+CATEGORIES=	graphics
 MASTER_SITES=	http://wayland.freedesktop.org/releases/
 MAINTAINER=	imre@vdsz.com
 COMMENT=	Wayland Display Protocol implementation
